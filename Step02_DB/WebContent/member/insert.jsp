@@ -1,0 +1,38 @@
+<%@page import="test.member.dao.MemberDao"%>
+<%@page import="test.member.dto.MemberDto"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%
+	//1. 폼전송딘 파라미터 읽어 낼 때 한글 깨지지 않도록 인코딩 설정
+	request.setCharacterEncoding("utf-8");
+	//2. 폼 전송된 파라미터 읽어내기 (name, addr)
+	String name=request.getParameter("name");
+	System.out.println("입력한 내용: "+name);
+	String addr=request.getParameter("addr");
+	System.out.println("입력한 내용: "+addr);
+	//3. MemberDto 객체에 name 과 addr 담기
+	MemberDto dto=new MemberDto();
+	dto.setName(name);
+	dto.setAddr(addr);
+	//4. MemberDao 에 insert 메소드 만들고 
+	
+	//5. MemberDao 객체를 이용해서 DB 에 저장
+	MemberDao dao=MemberDao.getInstance();
+	boolean isSuccess=dao.insertDto(dto);
+	//6. 클라이언트(웹브라우저)에게 응답하기
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>/member/insert.jsp</title>
+</head>
+<body>
+	<%if(isSuccess){ %>
+		<p>회원 1명의 정보를 추가 했습니다.</p>
+		<a href="list.jsp">확인</a>	
+	<%}else{ %>
+		<p>회원 정보 추가를 실패 <a href="insertform.jsp">다시 입력하기</a></p>
+	<%}%>
+</body>
+</html>
