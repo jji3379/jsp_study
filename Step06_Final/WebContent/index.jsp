@@ -12,6 +12,7 @@
 <title>/index.jsp</title>
 </head>
 <body>
+<jsp:include page="include/navbar.jsp"></jsp:include>
 <div class="container">
 	<%-- 만일 id가 null 이 아니면 로그인을 한 상태이다. --%>
 	<%if(id!=null){ %>
@@ -25,6 +26,7 @@
 		<li><a href="users/signup_form.jsp">회원가입</a></li>
 		<li><a href="users/loginform.jsp">로그인</a></li>
 		<li><a href="cafe/list.jsp">카페 글 목록 보기</a></li>
+		<li><a href="file/list.jsp">자료실 목록 보기</a></li>
 	</ul>
 </div>
 </body>
