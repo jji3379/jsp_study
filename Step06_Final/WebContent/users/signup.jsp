@@ -27,7 +27,7 @@
 	<%if(isSuccess){ %>
 		<p>
 			<strong><%=id %></strong> 회원님 가입 되었습니다.
-			<a href="">로그인 하러가기</a>
+			<a href="loginform.jsp">로그인 하러가기</a>
 		</p>
 	<%}else{ %>
 		<p>
