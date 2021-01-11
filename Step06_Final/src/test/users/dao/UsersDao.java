@@ -268,4 +268,37 @@ public class UsersDao {
 		return isExist;
 	}//isExist END
 	
+	//프로필 이미지 경로를 수정하는 메소드
+	public boolean updateProfile(UsersDto dto) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		int flag = 0;
+		try {
+			conn = new DbcpBean().getConn();
+			//select 문 작성
+			String sql = "UPDATE users"
+					+ " SET profile=?"
+					+ " WHERE id=?";
+			pstmt = conn.prepareStatement(sql);
+			//?에 바인딩 할게 있으면 여기서 바인딩한다.
+			pstmt.setString(1, dto.getProfile());
+			pstmt.setString(2, dto.getId());
+			flag = pstmt.executeUpdate();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (pstmt != null)pstmt.close();
+				if (conn != null)conn.close();
+			} catch (Exception e) {
+			}
+		}
+		if (flag > 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}//updateProfile END
+	
 }//Class END
