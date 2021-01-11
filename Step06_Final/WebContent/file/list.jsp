@@ -135,6 +135,16 @@
 			<%} %>
 		</ul>
 	</nav>
+	<form action="list.jsp" method="get">
+		<label for="condition">검색</label>
+		<select name="condition" id="condition">
+			<option value="title_filename">제목+파일명</option>
+			<option value="title">제목</option>
+			<option value="writer">작성자</option>
+		</select>
+		<input type="text" name="keyword" placeholder="검색어..." />
+		<button type="submit">검색</button>
+	</form>
 </div>
 <script>
 	function deleteConfirm(num){
