@@ -1,3 +1,4 @@
+<%@page import="java.net.URLEncoder"%>
 <%@page import="test.file.dto.FileDto"%>
 <%@page import="test.file.dao.FileDao"%>
 <%@page import="java.util.List"%>
@@ -19,6 +20,23 @@
 		pageNum=Integer.parseInt(strPageNum);
 	}
 	
+	/*
+		[ 검색 키워드에 관련된 처리]
+		-검색 키워드가 파라미터로 넘어올수도 있고 안넘어 올수도 있다.
+	*/
+	String keyword=request.getParameter("keyword");
+	String condition=request.getParameter("condition");
+	//만일 키워드가 넘어오지 않는다면
+	if(keyword==null){
+		//키워드와 검색 조건에 빈 문자열을 넣어준다.
+		//클라이언트 웹브라우저에 출력할 때 "null" 을 출력되지 않게 하기 위해서
+		keyword="";
+		condition="";
+	}
+	
+	//특수기호를 인코딩한 키워드를 미리 준비한다.
+	String encodedK=URLEncoder.encode(keyword);
+	
 	//보여줄 페이지의 시작 ROWNUM
 	int startRowNum=1+(pageNum-1)*PAGE_ROW_COUNT;
 	//보여줄 페이지의 끝 ROWNUM
@@ -29,16 +47,45 @@
 	dto.setStartRowNum(startRowNum);
 	dto.setEndRowNum(endRowNum);
 	
-	//CafeDao 객체를 이용해서 글목록을 얻어온다.
-	List<FileDto> list=FileDao.getInstance().getList(dto);
+	//ArrayList 객체의 참조값을 담을 지역변수를 미리 만든다.
+	List<FileDto> list=null;
+	//전체 row 의 갯수를 담을 지역변수를 미리 만든다.
+	int totalRow=0;
+	//만일 검색 키워드가 넘어온다면
+	if(!keyword.equals("")){
+		//검색 조건이 무엇이냐에 따라 분기 하기
+		if(condition.equals("title_filename")){//제목 + 파일명 검색인 경우
+			//검색 키워드를 FileDto 에 담아서 전달한다.
+			dto.setTitle(keyword);
+			dto.setOrgFileName(keyword);
+			//제목+파일명 검색일 때 호출하는 메소드를 이용해서 목록 얻어오기
+			list=FileDao.getInstance().getListTF(dto);
+			//제목+파일명 검색일 때 호출하는 메소드를 이용해서 row 의 개수 얻어오기
+			totalRow=FileDao.getInstance().getCountTF(dto);
+				
+		}else if(condition.equals("title")){//제목 검색인 경우
+			dto.setTitle(keyword);
+			list=FileDao.getInstance().getListT(dto);
+			totalRow=FileDao.getInstance().getCountT(dto);
+			
+		}else if(condition.equals("writer")){//작성자 검색인 경우
+			dto.setWriter(keyword);
+			list=FileDao.getInstance().getListW(dto);
+			totalRow=FileDao.getInstance().getCountW(dto);
+		
+		}//다른 검색 조건을 추가 하고 싶다면 아래에 else if() 를 계속 추가하면 된다.
+	}else{//검색 키워드가 넘어오지 않는다면
+		//키워드가 없을 때 호출하는 메소드를 이용해서 파일 목록을 얻어온다.
+		list=FileDao.getInstance().getList(dto);
+		//키워드가 없을 때 호출하는 메소드를 이용해서 전체 row 의 개수를 얻어온다.
+		totalRow=FileDao.getInstance().getCount();
+	}
 	
 	//하단 시작 페이지 번호 
 	int startPageNum = 1 + ((pageNum-1)/PAGE_DISPLAY_COUNT)*PAGE_DISPLAY_COUNT;
 	//하단 끝 페이지 번호
 	int endPageNum=startPageNum+PAGE_DISPLAY_COUNT-1;
 	
-	//전체 row 의 갯수
-	int totalRow=FileDao.getInstance().getCount();
 	//전체 페이지의 갯수 구하기
 	int totalPageCount=(int)Math.ceil(totalRow/(double)PAGE_ROW_COUNT);
 	//끝 페이지 번호가 이미 전체 페이지 갯수보다 크게 계산되었다면 잘못된 값이다.
@@ -106,7 +153,7 @@
 		<ul class="pagination justify-content-center">
 			<%if(startPageNum != 1){ %>
 				<li class="page-item">
-					<a class="page-link" href="list.jsp?pageNum=<%=startPageNum-1 %>">Prev</a>
+					<a class="page-link" href="list.jsp?pageNum=<%=startPageNum-1 %>&condition=<%=condition%>&keyword=<%=encodedK%>">Prev</a>
 				</li>
 			<%}else{ %>
 				<li class="page-item disabled">
@@ -116,17 +163,17 @@
 			<%for(int i=startPageNum; i<=endPageNum; i++) {%>
 				<%if(i==pageNum){ %>
 					<li class="page-item active">
-						<a class="page-link" href="list.jsp?pageNum=<%=i %>"><%=i %></a>
+						<a class="page-link" href="list.jsp?pageNum=<%=i %>&condition=<%=condition%>&keyword=<%=encodedK%>"><%=i %></a>
 					</li>
 				<%}else{ %>
 					<li class="page-item">
-						<a class="page-link" href="list.jsp?pageNum=<%=i %>"><%=i %></a>
+						<a class="page-link" href="list.jsp?pageNum=<%=i %>&condition=<%=condition%>&keyword=<%=encodedK%>"><%=i %></a>
 					</li>
 				<%} %>
 			<%} %>
 			<%if(endPageNum < totalPageCount){ %>
 				<li class="page-item">
-					<a class="page-link" href="list.jsp?pageNum=<%=endPageNum+1 %>">Next</a>
+					<a class="page-link" href="list.jsp?pageNum=<%=endPageNum+1 %>&condition=<%=condition%>&keyword=<%=encodedK%>">Next</a>
 				</li>
 			<%}else{ %>
 				<li class="page-item disabled">
@@ -138,13 +185,19 @@
 	<form action="list.jsp" method="get">
 		<label for="condition">검색</label>
 		<select name="condition" id="condition">
-			<option value="title_filename">제목+파일명</option>
-			<option value="title">제목</option>
-			<option value="writer">작성자</option>
+			<option value="title_filename" <%=condition.equals("title_filename")? "selected":"" %>>제목+파일명</option>
+			<option value="title" <%=condition.equals("title")? "selected":"" %>>제목</option>
+			<option value="writer" <%=condition.equals("writer")? "selected":"" %>>작성자</option>
 		</select>
-		<input type="text" name="keyword" placeholder="검색어..." />
+		<input type="text" name="keyword" placeholder="검색어..." value="<%=keyword%>"/>
 		<button type="submit">검색</button>
 	</form>
+	<%--만일 검색 키워드가 존재한다면 몇개의 글이 검색 되었는지 알려준다. --%>
+	<%if(!keyword.equals("")){ %>
+		<div class="alert alert-success">
+			<strong><%=totalRow %></strong> 개의 자료가 검색되었습니다.
+		</div>
+	<%} %>
 </div>
 <script>
 	function deleteConfirm(num){
